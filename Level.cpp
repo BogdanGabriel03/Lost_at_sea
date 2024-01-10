@@ -41,9 +41,13 @@ void Level::draw() {
 Level::~Level() {
 
 	for (int i = 0;i < 300 / TileHeight;++i) {
-		delete[]Tiles[i];
+		if (Tiles[i] != nullptr) {
+			delete[]Tiles[i];
+		}
 	}
-	delete[]Tiles;
+	if (Tiles != nullptr) {
+		delete[]Tiles;
+	}
 }
 
 void Level::update(SDL_Event* event) {

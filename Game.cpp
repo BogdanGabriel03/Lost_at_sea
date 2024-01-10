@@ -124,17 +124,9 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	for (int i = 0;i < 3;++i) {
 		PlayerSprite[i] = new TextureManager();
 	}
-	for (int i = 0;i < 3;++i) {
-		Levels[i] = new Level(gRenderer);
-	}
+	
 	loadMedia(windowWidth, windowHeight);
 	NewPlayer = new Player(gRenderer, Font);
-
-	Levels[0]->init(gButtonSpriteSheetTexture, NewPlayer, PlayerSprite[0], 116, 96);
-	//Levels[2]->init(gButtonSpriteSheetTexture, Players[2], 96, 46);
-	Levels[0]->setLvlLayout(Lvl1Layout);
-	Levels[1]->setLvlLayout(Lvl2Layout);
-	Levels[2]->setLvlLayout(Lvl3Layout);
 }
 
 void Game::loadMedia(int windowWidth, int windowHeight) {
@@ -386,17 +378,33 @@ void Game::handleEvents() {
 			else {
 				SettingsBackButton->setButtonAction(opt);
 			}
-			if (LvlAccesible[1] == 0 && contor == 0) {
+			if (LvlAccesible[1] == 15 && contor == 0) {
+				contor++;
+				Levels[0] = new Level(gRenderer);
+				Levels[0]->init(gButtonSpriteSheetTexture, NewPlayer, PlayerSprite[0], 116, 96);
+				Levels[0]->setLvlLayout(Lvl1Layout);
+			}
+			if (LvlAccesible[1] == 0 && contor == 1) {
 				contor++;
 				LvlAccesible[2] = 15;
 				NewPlayer = Levels[0]->getPlayerState();
+				delete Levels[0];
+				Levels[1] = new Level(gRenderer);
 				Levels[1]->init(gButtonSpriteSheetTexture, NewPlayer,PlayerSprite[1], 116, 56);
+				Levels[1]->setLvlLayout(Lvl2Layout);
 			}
-			else if (LvlAccesible[2] == 0 && contor == 1) {
+			else if (LvlAccesible[2] == 0 && contor == 2) {
 				contor++;
 				LvlAccesible[3] = 15;
 				NewPlayer = Levels[1]->getPlayerState();
+				delete Levels[1];
+				Levels[2] = new Level(gRenderer);
 				Levels[2]->init(gButtonSpriteSheetTexture, NewPlayer, PlayerSprite[2], 96, 46);
+				Levels[2]->setLvlLayout(Lvl3Layout);
+			}
+			else if (LvlAccesible[3] == 0 && contor ==3) {
+				contor++;
+				delete Levels[2];
 			}
 			break;
 		case 2:
@@ -518,9 +526,6 @@ void Game::clean() {
 	for (int i = 0;i < 4;++i) {
 		delete LevelSelectionButton[i];
 		LevelSelectionButton[i] = nullptr;
-	}
-	for (int i = 0;i < 3;++i) {
-		delete Levels[i];
 	}
 	if (NewPlayer != nullptr) {
 		delete NewPlayer;

@@ -36,6 +36,7 @@ void Level::draw() {
 			Tiles[i * (600 / TileWidth) + j]->setButtonAction(0);
 		}
 	}
+	delete clip;
 }
 
 Level::~Level() {
@@ -60,7 +61,8 @@ void Level::update(SDL_Event* event) {
 				player->setPosition(j * TileWidth + 20 + (j + 1) * 3, i * TileHeight + (i + 1) * 3);
 				player->setAction(LvlLayout[i * (600 / TileWidth) + j]);
 				player->update();
-				if (LvlLayout[i * (600 / TileWidth) + j] == 5) { LvlEnded = true; }
+				if (LvlLayout[i * (600 / TileWidth) + j] == 1) { LvlAction = 2; }
+				else if (LvlLayout[i * (600 / TileWidth) + j] == 5) { LvlAction = 1; }
 				LvlLayout[i * (600 / TileWidth) + j] = 0;
 			}
 			opt = 0;

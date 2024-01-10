@@ -13,9 +13,11 @@ TextureManager* MapBaseTexture = nullptr;
 TextureManager* TileTexture = nullptr;
 TextureManager* PlayerSprite[3];
 TextureManager* EndLvlTexture = nullptr;
+TextureManager* MonsterTexture;
 SDL_Rect LevelIconsSprites[4];
 SDL_Rect gTextClips[TOTAL_BUTTONS + 2];
 SDL_Rect SpriteClips[BUTTON_SPRITE_TOTAL];
+Component *firstMonster;
 
 /*lvl layout represents what every tile does when stepped on:
 	0 - nothing ( empty tile )
@@ -119,8 +121,12 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	MapBaseTexture = new TextureManager();
 	TileTexture = new TextureManager();
 	EndLvlTexture = new TextureManager();
+	MonsterTexture = new TextureManager();
+	firstMonster = new Enemy(gRenderer, 1,MonsterTexture);
 
 	map = new Map(gRenderer);
+	map->init(MapBaseTexture);
+
 	for (int i = 0;i < 3;++i) {
 		PlayerSprite[i] = new TextureManager();
 	}
@@ -229,6 +235,11 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		printf("Failed to load end level screen texture!\n");
 		isRunning = false;
 	}
+	if (!MonsterTexture->loadFromFile("./Assets/OctopusMonster.png", gRenderer))
+	{
+		printf("Failed to load monster texture!\n");
+		isRunning = false;
+	}
 	else {
 		for (int i = 0; i < 4; ++i)
 		{
@@ -294,7 +305,6 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 7:
-		map->init(MapBaseTexture);
 		map->draw();
 		Levels[0]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -308,7 +318,6 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 9:
-		map->init(MapBaseTexture);
 		map->draw();
 		Levels[1]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -322,19 +331,23 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 11:
-		map->init(MapBaseTexture);
 		map->draw();
 		Levels[2]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
+	case 12:
+		map->draw();
+		NewPlayer->draw();
+		firstMonster->draw();
+		//Monster->render(gRenderer, (windowWidth - Monster->getWidth()) / 2, 30);
 	}
 	SDL_RenderPresent(gRenderer);
 }
 
 void Game::handleEvents() {
 	SDL_Event event;
-	bool LvlEnded;
+	int LvlAction;
 	while (SDL_PollEvent(&event) != 0) {
 		switch (event.type)
 		{
@@ -434,7 +447,7 @@ void Game::handleEvents() {
 			if (NoButton->getButtonAction() != 0) { opt = 1; SettingsBackButton->setButtonAction(opt); }
 			YesButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
 			opt = opt | YesButton->getButtonAction();
-			Levels[0]->setLvlState(false);
+			Levels[0]->setLvlState(0);
 			break;
 		case 7:
 			//Level 1 layout
@@ -445,10 +458,13 @@ void Game::handleEvents() {
 			SettingsBackButton->setButtonId(1);
 			Levels[0]->update(&event);
 			SettingsBackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
-			LvlEnded = Levels[0]->getLvlState();
-			if (LvlEnded) {
+			LvlAction = Levels[0]->getLvlState();
+			if (LvlAction == 1) {
 				LvlAccesible[1] = 0;
 				opt = 6;
+			}
+			else if (LvlAction == 2) {
+				opt = 12;
 			}
 			else {
 				opt = SettingsBackButton->getButtonAction();
@@ -460,7 +476,7 @@ void Game::handleEvents() {
 			if (NoButton->getButtonAction() != 0) { opt = 1; SettingsBackButton->setButtonAction(opt); }
 			YesButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
 			opt = opt | YesButton->getButtonAction();
-			Levels[1]->setLvlState(false);
+			Levels[1]->setLvlState(0);
 			break;
 		case 9:
 			//Level 2 layout
@@ -471,8 +487,8 @@ void Game::handleEvents() {
 			SettingsBackButton->setButtonId(1);
 			Levels[1]->update(&event);
 			SettingsBackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
-			LvlEnded = Levels[1]->getLvlState();
-			if (LvlEnded) {
+			LvlAction = Levels[1]->getLvlState();
+			if (LvlAction == 1) {
 				LvlAccesible[2] = 0;
 				opt = 8;
 			}
@@ -486,7 +502,7 @@ void Game::handleEvents() {
 			if (NoButton->getButtonAction() != 0) { opt = 1; SettingsBackButton->setButtonAction(opt); }
 			YesButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
 			opt = opt | YesButton->getButtonAction();
-			Levels[2]->setLvlState(false);
+			Levels[2]->setLvlState(0);
 			break;
 		case 11:
 			//Level 3 Layout
@@ -497,8 +513,8 @@ void Game::handleEvents() {
 			SettingsBackButton->setButtonId(1);
 			Levels[2]->update(&event);
 			SettingsBackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
-			LvlEnded = Levels[2]->getLvlState();
-			if (LvlEnded) {
+			LvlAction = Levels[2]->getLvlState();
+			if (LvlAction == 1) {
 				LvlAccesible[3] = 0;
 				opt = 10;
 			}

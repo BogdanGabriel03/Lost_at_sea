@@ -5,14 +5,14 @@
 
 class Level :public Map {
 	int TileWidth, TileHeight;
-	bool LvlEnded;
+	int LvlAction;
 	int* LvlLayout;
 	Button** Tiles;
 	TextureManager* TileSprite;
 	Player* player;
 public:
 	Level(SDL_Renderer* gRenderer) : Map(gRenderer) {
-		LvlEnded = false; TileWidth = 0; TileHeight = 0;LvlLayout = nullptr;TileSprite = nullptr;Tiles = nullptr;player = nullptr;
+		LvlAction = 0; TileWidth = 0; TileHeight = 0;LvlLayout = nullptr;TileSprite = nullptr;Tiles = nullptr;player = nullptr;
 	}
 	~Level();
 	int getTileWidth() { return  TileWidth; }
@@ -21,8 +21,8 @@ public:
 	void draw();
 	void update(SDL_Event* event);
 	void setLvlLayout(int* NewLvlLayout) { LvlLayout = NewLvlLayout; }
-	bool getLvlState() { return LvlEnded; }
-	void setLvlState(bool opt) { LvlEnded = opt; }
+	int getLvlState() { return LvlAction; }
+	void setLvlState(bool opt) { LvlAction = opt; }
 	Player* getPlayerState() {
 		return player;
 	}

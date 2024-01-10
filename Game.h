@@ -9,6 +9,7 @@
 #include "Map.h"
 #include "Level.h"
 #include "Player.h"
+#include "Enemy.h"
 
 class Game {
 	SDL_Window* gWindow;

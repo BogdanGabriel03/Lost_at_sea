@@ -93,7 +93,7 @@ void Player::draw() {
 			printf("Error! Could not initialize shit! %s", TTF_GetError());
 		}
 	}
-	PlayerSprite->render(gRenderer, pozX, pozY);
+	if (action != 1) { PlayerSprite->render(gRenderer, pozX, pozY); }
 	for (int i = 0;i < 4;++i) {
 		TextTexture[i].render(gRenderer, 15, 305 + 45 * i);
 	}

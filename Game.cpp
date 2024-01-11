@@ -4,6 +4,7 @@ Button* MainMenuButtons[TOTAL_BUTTONS - 1];
 Button* SettingsBackButton = nullptr;
 Button* LevelSelectionButton[4];
 Button* YesButton = nullptr, * NoButton = nullptr;
+Button* AttackButton = nullptr;
 TextureManager* MainMenuTexture = nullptr;
 TextureManager* gButtonSpriteSheetTexture = nullptr;
 TextureManager* gButtonTextSpriteSheetTexture = nullptr;
@@ -15,9 +16,9 @@ TextureManager* PlayerSprite[3];
 TextureManager* EndLvlTexture = nullptr;
 TextureManager* MonsterTexture;
 SDL_Rect LevelIconsSprites[4];
-SDL_Rect gTextClips[TOTAL_BUTTONS + 2];
+SDL_Rect gTextClips[TOTAL_BUTTONS + 3];
 SDL_Rect SpriteClips[BUTTON_SPRITE_TOTAL];
-Component *firstMonster;
+Enemy *firstMonster;
 
 /*lvl layout represents what every tile does when stepped on:
 	0 - nothing ( empty tile )
@@ -111,6 +112,7 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	}
 	YesButton = new Button(3);
 	NoButton = new Button(3);
+	AttackButton = new Button(3);
 
 	MainMenuTexture = new TextureManager();
 	gButtonSpriteSheetTexture = new TextureManager();
@@ -122,8 +124,8 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	TileTexture = new TextureManager();
 	EndLvlTexture = new TextureManager();
 	MonsterTexture = new TextureManager();
-	firstMonster = new Enemy(gRenderer, 1,MonsterTexture);
-
+	
+	
 	map = new Map(gRenderer);
 	map->init(MapBaseTexture);
 
@@ -133,6 +135,8 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	
 	loadMedia(windowWidth, windowHeight);
 	NewPlayer = new Player(gRenderer, Font);
+	firstMonster = new Enemy(gRenderer, 1,Font);
+	firstMonster->init(MonsterTexture);
 }
 
 void Game::loadMedia(int windowWidth, int windowHeight) {
@@ -169,6 +173,7 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		LevelSelectionButton[3]->setPosition(320, 220);
 		YesButton->setPosition(140, 320);
 		NoButton->setPosition(350, 320);
+		AttackButton->setPosition((windowWidth - BUTTON_WIDTH) / 2, 220);
 	}
 
 	if (!gButtonTextSpriteSheetTexture->loadFromFile("./Assets/TextButtons.png", gRenderer)) {
@@ -176,7 +181,7 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		isRunning = false;
 	}
 	else {
-		for (int i = 0; i < TOTAL_BUTTONS + 2; ++i)
+		for (int i = 0; i < TOTAL_BUTTONS + 3; ++i)
 		{
 			gTextClips[i].x = 0;
 			gTextClips[i].y = i * 45;
@@ -279,7 +284,7 @@ void Game::render(int windowWidth, int windowHeight) {
 	case 1:
 		LevelSelectionTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		for (int i = 0;i < 4;++i) {
 			LevelSelectionButton[i]->render(gButtonSpriteSheetTexture, gRenderer);
 		}
@@ -290,12 +295,12 @@ void Game::render(int windowWidth, int windowHeight) {
 	case 2:
 		SettingsMenuTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 3:
 		LevelSelectionTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 6:
 		EndLvlTexture->render(gRenderer, 0, 0);
@@ -308,7 +313,7 @@ void Game::render(int windowWidth, int windowHeight) {
 		map->draw();
 		Levels[0]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 8:
 		EndLvlTexture->render(gRenderer, 0, 0);
@@ -321,7 +326,7 @@ void Game::render(int windowWidth, int windowHeight) {
 		map->draw();
 		Levels[1]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 10:
 		EndLvlTexture->render(gRenderer, 0, 0);
@@ -334,12 +339,14 @@ void Game::render(int windowWidth, int windowHeight) {
 		map->draw();
 		Levels[2]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
-		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 12:
 		map->draw();
 		NewPlayer->draw();
 		firstMonster->draw();
+		AttackButton->render(gButtonSpriteSheetTexture, gRenderer);
+		gButtonTextSpriteSheetTexture->render(gRenderer, (windowWidth - BUTTON_WIDTH)/2, 220, &gTextClips[6]);
 		//Monster->render(gRenderer, (windowWidth - Monster->getWidth()) / 2, 30);
 	}
 	SDL_RenderPresent(gRenderer);
@@ -520,6 +527,13 @@ void Game::handleEvents() {
 			}
 			else {
 				opt = SettingsBackButton->getButtonAction();
+			}
+			break;
+		case 12:
+			//Monster fight layout
+			AttackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
+			if (AttackButton->getButtonAction()) {
+				firstMonster->
 			}
 			break;
 		}

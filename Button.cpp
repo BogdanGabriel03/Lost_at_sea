@@ -19,7 +19,7 @@ Button::Button(int btnId)
 		mCurrentSprite = BUTTON_SPRITE_UNTOUCHED_TILE;
 		break;
 	case 3:
-		mCurrentSprite = BUTTON_SPRITE_ACTIVE;
+		mCurrentSprite = BUTTON_SPRITE_UNTOUCHED;
 		break;
 	}
 }
@@ -123,7 +123,10 @@ void Button::handleEvent(SDL_Event* e, int BUTTON_WIDTH, int BUTTON_HEIGHT)
 						pressedButtonAction = 1;//Tile that is being pressed - indicates the game to do the action of the tile
 						break;
 					case 3:
-						if (x < 320) {
+						if (y < 265) {
+							pressedButtonAction = 1;
+						}
+						else if (x < 320) {
 							pressedButtonAction = 1;
 						}
 						else {

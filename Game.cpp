@@ -532,9 +532,6 @@ void Game::handleEvents() {
 		case 12:
 			//Monster fight layout
 			AttackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
-			if (AttackButton->getButtonAction()) {
-				firstMonster->
-			}
 			break;
 		}
 	}

@@ -3,13 +3,14 @@
 Button* MainMenuButtons[TOTAL_BUTTONS - 1];
 Button* SettingsBackButton = nullptr;
 Button* LevelSelectionButton[4];
+Button* PurchaseSelectionButton[4];
 Button* YesButton = nullptr, * NoButton = nullptr;
 Button* AttackButton = nullptr;
 TextureManager* MainMenuTexture = nullptr;
 TextureManager* gButtonSpriteSheetTexture = nullptr;
 TextureManager* gButtonTextSpriteSheetTexture = nullptr;
 TextureManager* LevelIconsSheetTexture = nullptr;
-TextureManager* SettingsMenuTexture = nullptr, * LevelSelectionTexture = nullptr;
+TextureManager* SettingsMenuTexture = nullptr, * LevelSelectionTexture = nullptr, * shopTexture=nullptr;
 TextureManager* MapBaseTexture = nullptr;
 TextureManager* TileTexture = nullptr;
 TextureManager* PlayerSprite[3];
@@ -18,7 +19,6 @@ TextureManager* MonsterTexture;
 SDL_Rect LevelIconsSprites[4];
 SDL_Rect gTextClips[TOTAL_BUTTONS + 3];
 SDL_Rect SpriteClips[BUTTON_SPRITE_TOTAL];
-Enemy *firstMonster;
 
 /*lvl layout represents what every tile does when stepped on:
 	0 - nothing ( empty tile )
@@ -31,15 +31,16 @@ Enemy *firstMonster;
 
 int Lvl1Layout[15] = { 0, 0, 1, 0, 1, 0, 1, 1, 3, 5, 1, 4, 0, 1, 2 };
 int Lvl2Layout[25] = { 0,0,0,0,0,1,0,1,0,0,0,1,3,1,0,2,1,0,1,1,0,5,2,1,4 };
-int Lvl3Layout[36] = { 0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+int Lvl3Layout[36] = { 0,0,0,2,0,1,1,2,0,0,0,4,0,1,1,0,1,3,0,0,0,1,1,1,1,0,0,1,5,1,4,1,0,3,1,2 };
 int LvlAccesible[4] = { 15,15,0,0 };
 int contor=0;
 
 Map* map;
 Level* Levels[3];
 Player* NewPlayer;
+Enemy* firstMonster;
 TTF_Font* Font;			//globally used font
-int opt;
+int opt,last_opt;
 
 Game::Game() : isRunning(false), gWindow(nullptr), gRenderer(nullptr) {}
 
@@ -109,6 +110,7 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	SettingsBackButton = new Button(0);
 	for (int i = 0;i < 4;++i) {
 		LevelSelectionButton[i] = new Button(1);
+		PurchaseSelectionButton[i] = new Button(4);
 	}
 	YesButton = new Button(3);
 	NoButton = new Button(3);
@@ -118,6 +120,7 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	gButtonSpriteSheetTexture = new TextureManager();
 	gButtonTextSpriteSheetTexture = new TextureManager();
 	SettingsMenuTexture = new TextureManager();
+	shopTexture = new TextureManager();
 	LevelSelectionTexture = new TextureManager();
 	LevelIconsSheetTexture = new TextureManager();
 	MapBaseTexture = new TextureManager();
@@ -136,7 +139,6 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	loadMedia(windowWidth, windowHeight);
 	NewPlayer = new Player(gRenderer, Font);
 	firstMonster = new Enemy(gRenderer, 1,Font);
-	firstMonster->init(MonsterTexture);
 }
 
 void Game::loadMedia(int windowWidth, int windowHeight) {
@@ -174,6 +176,10 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		YesButton->setPosition(140, 320);
 		NoButton->setPosition(350, 320);
 		AttackButton->setPosition((windowWidth - BUTTON_WIDTH) / 2, 220);
+		PurchaseSelectionButton[0]->setPosition(0, 0);
+		PurchaseSelectionButton[1]->setPosition(320, 0);
+		PurchaseSelectionButton[2]->setPosition(0, 220);
+		PurchaseSelectionButton[3]->setPosition(320, 220);
 	}
 
 	if (!gButtonTextSpriteSheetTexture->loadFromFile("./Assets/TextButtons.png", gRenderer)) {
@@ -196,6 +202,11 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		isRunning = false;
 	}
 	if (!SettingsMenuTexture->loadFromFile("./Assets/SettingsMenu.png", gRenderer))
+	{
+		printf("Failed to load main menu texture!\n");
+		isRunning = false;
+	}
+	if (!shopTexture->loadFromFile("./Assets/shop.png", gRenderer))
 	{
 		printf("Failed to load main menu texture!\n");
 		isRunning = false;
@@ -302,6 +313,14 @@ void Game::render(int windowWidth, int windowHeight) {
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
+	case 5:
+		shopTexture->render(gRenderer, 0, 0);
+		for (int i = 0;i < 4;++i) {
+			PurchaseSelectionButton[i]->render(gButtonSpriteSheetTexture, gRenderer);  //these are now used to explore the shop
+		}
+		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
+		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH + 25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
+		break;
 	case 6:
 		EndLvlTexture->render(gRenderer, 0, 0);
 		YesButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -343,8 +362,7 @@ void Game::render(int windowWidth, int windowHeight) {
 		break;
 	case 12:
 		map->draw();
-		NewPlayer->draw();
-		firstMonster->draw();
+		Levels[last_opt/8+last_opt/10]->draw();
 		AttackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, (windowWidth - BUTTON_WIDTH)/2, 220, &gTextClips[6]);
 		//Monster->render(gRenderer, (windowWidth - Monster->getWidth()) / 2, 30);
@@ -401,16 +419,16 @@ void Game::handleEvents() {
 			if (LvlAccesible[1] == 15 && contor == 0) {
 				contor++;
 				Levels[0] = new Level(gRenderer);
-				Levels[0]->init(gButtonSpriteSheetTexture, NewPlayer, PlayerSprite[0], 116, 96);
+				Levels[0]->init(gButtonSpriteSheetTexture, NewPlayer, firstMonster, PlayerSprite[0], MonsterTexture,116, 96);
 				Levels[0]->setLvlLayout(Lvl1Layout);
 			}
-			if (LvlAccesible[1] == 0 && contor == 1) {
+			else if (LvlAccesible[1] == 0 && contor == 1) {
 				contor++;
 				LvlAccesible[2] = 15;
 				NewPlayer = Levels[0]->getPlayerState();
 				delete Levels[0];
 				Levels[1] = new Level(gRenderer);
-				Levels[1]->init(gButtonSpriteSheetTexture, NewPlayer,PlayerSprite[1], 116, 56);
+				Levels[1]->init(gButtonSpriteSheetTexture, NewPlayer, firstMonster,PlayerSprite[1], MonsterTexture,116, 56);
 				Levels[1]->setLvlLayout(Lvl2Layout);
 			}
 			else if (LvlAccesible[2] == 0 && contor == 2) {
@@ -419,7 +437,7 @@ void Game::handleEvents() {
 				NewPlayer = Levels[1]->getPlayerState();
 				delete Levels[1];
 				Levels[2] = new Level(gRenderer);
-				Levels[2]->init(gButtonSpriteSheetTexture, NewPlayer, PlayerSprite[2], 96, 46);
+				Levels[2]->init(gButtonSpriteSheetTexture, NewPlayer, firstMonster,PlayerSprite[2], MonsterTexture,96, 46);
 				Levels[2]->setLvlLayout(Lvl3Layout);
 			}
 			else if (LvlAccesible[3] == 0 && contor ==3) {
@@ -472,6 +490,7 @@ void Game::handleEvents() {
 			}
 			else if (LvlAction == 2) {
 				opt = 12;
+				last_opt = 7;
 			}
 			else {
 				opt = SettingsBackButton->getButtonAction();
@@ -499,6 +518,10 @@ void Game::handleEvents() {
 				LvlAccesible[2] = 0;
 				opt = 8;
 			}
+			else if (LvlAction == 2) {
+				opt = 12;
+				last_opt = 9;
+			}
 			else {
 				opt = SettingsBackButton->getButtonAction();
 			}
@@ -525,6 +548,10 @@ void Game::handleEvents() {
 				LvlAccesible[3] = 0;
 				opt = 10;
 			}
+			else if (LvlAction == 2) {
+				opt = 12;
+				last_opt = 11;
+			}
 			else {
 				opt = SettingsBackButton->getButtonAction();
 			}
@@ -532,6 +559,13 @@ void Game::handleEvents() {
 		case 12:
 			//Monster fight layout
 			AttackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
+			if (AttackButton->getButtonAction() == 1) {
+				Levels[last_opt/8+last_opt/10]->update(&event);
+			}
+			if (Levels[last_opt / 8 + last_opt / 10]->getLvlState() == 0) {
+				opt = last_opt;
+			}
+			AttackButton->setButtonAction(0);
 			break;
 		}
 	}

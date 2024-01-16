@@ -21,8 +21,31 @@ class Enemy : public Component {
 	TTF_Font* font;
 public:
 	Enemy(SDL_Renderer*,int type, TTF_Font*);
+	Enemy(const Enemy& newEnemy) {
+		type = newEnemy.type;
+		health = newEnemy.health;
+		attack = newEnemy.attack;
+		maxHP = newEnemy.maxHP;
+		EnemyTexture->free();
+		EnemyTexture = newEnemy.EnemyTexture;
+		gRenderer = newEnemy.gRenderer;
+		font = newEnemy.font;
+	}
 	~Enemy() {}
+	Enemy& operator= (const Enemy& newEnemy) {
+		type = newEnemy.type;
+		health = newEnemy.health;
+		attack = newEnemy.attack;
+		maxHP = newEnemy.maxHP;
+		EnemyTexture->free();
+		EnemyTexture = newEnemy.EnemyTexture;
+		gRenderer = newEnemy.gRenderer;
+		font = newEnemy.font;
+		return *this;
+	}
 	void init(TextureManager*);
 	void draw();
+	void update(int dmg) { health -= dmg; }
+	void setMonsterHealth() { health = maxHP; }
 	int getMonsterHealth() { return health; }
 };

@@ -21,6 +21,9 @@ Button::Button(int btnId)
 	case 3:
 		mCurrentSprite = BUTTON_SPRITE_UNTOUCHED;
 		break;
+	case 4:
+		mCurrentSprite = BUTTON_SPRITE_UNTOUCHED_BIG;
+		break;
 	}
 }
 

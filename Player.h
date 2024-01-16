@@ -31,4 +31,5 @@ public:
 		std::cout << health << " " << attack << " " << experience << " " << gold << " " << maxHP << "\n";
 		std::cout << PlayerSprite << " " << gRenderer << " " << font << "\n";
 	}
+	int getAttack() { return attack; }
 };

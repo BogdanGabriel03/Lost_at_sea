@@ -6,17 +6,17 @@ Enemy::Enemy(SDL_Renderer*gRenderer,int type,TTF_Font* gFont) {
 	case 1:
 		maxHP = 10;
 		health = 10;
-		attack = 2;
+		attack = 5;
 		break;
 	case 2:
 		maxHP = 25;
 		health = 25;
-		attack = 4;
+		attack = 8;
 		break;
 	case 3:
 		maxHP = 40;
 		health = 40;
-		attack = 8;
+		attack = 12;
 		break;
 	}
 	EnemyTexture = nullptr;

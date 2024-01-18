@@ -46,6 +46,7 @@ void Player::update() {
 		attack++;
 		break;
 	}
+	
 }
 
 void Player::draw() {

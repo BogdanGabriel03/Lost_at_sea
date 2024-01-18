@@ -87,5 +87,8 @@ void Level::update(SDL_Event* event) {
 			player->setAction(0);
 			monster->setMonsterHealth();
 		}
+		else{
+			player->setHealth(player->getHealth() - monster->getMonsterAttack());
+		}
 	}
 }

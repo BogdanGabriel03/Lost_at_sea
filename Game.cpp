@@ -20,6 +20,21 @@ SDL_Rect LevelIconsSprites[4];
 SDL_Rect gTextClips[TOTAL_BUTTONS + 3];
 SDL_Rect SpriteClips[BUTTON_SPRITE_TOTAL];
 
+const int TOTAL_DATA = 10;
+/*
+	gData[0] = saved(boolean)
+	gData[1] = contor;
+	gData[2] = LvlAccesible[1];
+	gData[3] = LvlAccesible[2];
+	gData[4] = LvlAccesible[3];
+	gData[5] = player health;
+	gData[6] = player attack;
+	gData[7] = player level;
+	gData[8] = player experience;
+	gData[9] = player gold;
+*/
+Sint32 gData[TOTAL_DATA];
+
 /*lvl layout represents what every tile does when stepped on:
 	0 - nothing ( empty tile )
 	1 - enemy
@@ -34,6 +49,7 @@ int Lvl2Layout[25] = { 0,0,0,0,0,1,0,1,0,0,0,1,3,1,0,2,1,0,1,1,0,5,2,1,4 };
 int Lvl3Layout[36] = { 0,0,0,2,0,1,1,2,0,0,0,4,0,1,1,0,1,3,0,0,0,1,1,1,1,0,0,1,5,1,4,1,0,3,1,2 };
 int LvlAccesible[4] = { 15,15,0,0 };
 int contor=0;
+bool SaveLoaded = false;
 
 Map* map;
 Level* Levels[3];
@@ -138,6 +154,19 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 	
 	loadMedia(windowWidth, windowHeight);
 	NewPlayer = new Player(gRenderer, Font);
+	if (SaveLoaded == true) {
+		contor = gData[1];
+		LvlAccesible[1] = gData[2];
+		LvlAccesible[2] = gData[3];
+		LvlAccesible[3] = gData[4];
+		NewPlayer->setHealth(gData[5]);
+		NewPlayer->setAttack(gData[6]);
+		NewPlayer->setLevel(gData[7]);
+		NewPlayer->setExperience(gData[8]);
+		NewPlayer->setGold(gData[9]);
+		gData[0] = 0;
+		std::cout << LvlAccesible[1] << " " << LvlAccesible[2] << " " << LvlAccesible[3] << "\n";
+	}
 	firstMonster = new Enemy(gRenderer, 1,Font);
 }
 
@@ -273,6 +302,53 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		isRunning = false;
 	}
 
+	SDL_RWops* file = SDL_RWFromFile("./Assets/stats.bin", "r+b");
+
+	//File does not exist
+	if (file == NULL)
+	{
+		printf("Warning: Unable to open file! SDL Error: %s\n", SDL_GetError());
+
+		//Create file for writing
+		file = SDL_RWFromFile("./Assets/stats.bin", "w+b");
+		if (file != NULL)
+		{
+			printf("New file created!\n");
+
+			//Initialize data
+			for (int i = 0; i < TOTAL_DATA; ++i)
+			{
+				gData[i] = 0;
+				SDL_RWwrite(file, &gData[i], sizeof(Sint32), 1);
+			}
+
+			//Close file handler
+			SDL_RWclose(file);
+		}
+		else
+		{
+			printf("Error: Unable to create file! SDL Error: %s\n", SDL_GetError());
+			isRunning = false;
+		}
+	}
+	else
+	{
+		//Load data
+		printf("Reading file...!\n");
+		for (int i = 0; i < TOTAL_DATA; ++i)
+		{
+			SDL_RWread(file, &gData[i], sizeof(Sint32), 1);
+			std::cout << gData[i] << "  ";
+		}
+		std::cout << "\n";
+		if (gData[0] == 1) {
+			SaveLoaded = 1;
+		}
+
+		//Close file handler
+		SDL_RWclose(file);
+	}
+
 }
 
 void Game::render(int windowWidth, int windowHeight) {
@@ -281,6 +357,7 @@ void Game::render(int windowWidth, int windowHeight) {
 	SDL_RenderClear(gRenderer);
 	switch (opt) {
 	case 0:
+		//Main menu
 		MainMenuTexture->render(gRenderer, 0, 0);
 		//Render buttons
 		for (int i = 0; i < TOTAL_BUTTONS - 1; ++i)
@@ -293,6 +370,7 @@ void Game::render(int windowWidth, int windowHeight) {
 
 		break;
 	case 1:
+		//Level selction menu
 		LevelSelectionTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
@@ -304,16 +382,19 @@ void Game::render(int windowWidth, int windowHeight) {
 		}
 		break;
 	case 2:
+		//Settings menu
 		SettingsMenuTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 3:
+		//Extras menu
 		LevelSelectionTexture->render(gRenderer, 0, 0);
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 5:
+		//Shop
 		shopTexture->render(gRenderer, 0, 0);
 		for (int i = 0;i < 4;++i) {
 			PurchaseSelectionButton[i]->render(gButtonSpriteSheetTexture, gRenderer);  //these are now used to explore the shop
@@ -322,6 +403,7 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH + 25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 6:
+		//End Level 1 Screen
 		EndLvlTexture->render(gRenderer, 0, 0);
 		YesButton->render(gButtonSpriteSheetTexture, gRenderer);
 		NoButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -329,12 +411,14 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 7:
+		//First level
 		map->draw();
 		Levels[0]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 8:
+		//End Level Screen
 		EndLvlTexture->render(gRenderer, 0, 0);
 		YesButton->render(gButtonSpriteSheetTexture, gRenderer);
 		NoButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -342,12 +426,14 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 9:
+		//Second level
 		map->draw();
 		Levels[1]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 10:
+		//End Level Screen
 		EndLvlTexture->render(gRenderer, 0, 0);
 		YesButton->render(gButtonSpriteSheetTexture, gRenderer);
 		NoButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -355,12 +441,14 @@ void Game::render(int windowWidth, int windowHeight) {
 		gButtonTextSpriteSheetTexture->render(gRenderer, 350, 320, &gTextClips[5]);
 		break;
 	case 11:
+		//Third level
 		map->draw();
 		Levels[2]->draw();
 		SettingsBackButton->render(gButtonSpriteSheetTexture, gRenderer);
 		gButtonTextSpriteSheetTexture->render(gRenderer, windowWidth - BUTTON_WIDTH+25, windowHeight - BUTTON_HEIGHT, &gTextClips[3]);
 		break;
 	case 12:
+		//Monster Fight Screen
 		map->draw();
 		Levels[last_opt/8+last_opt/10]->draw();
 		AttackButton->render(gButtonSpriteSheetTexture, gRenderer);
@@ -393,6 +481,19 @@ void Game::handleEvents() {
 				opt = opt | MainMenuButtons[i]->getButtonAction();
 			}
 			SettingsBackButton->setButtonAction(opt);
+			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_s) {
+				std::cout << NewPlayer->getHealth() << " " << NewPlayer->getAttack() << " " << NewPlayer->getGold() << "\n";
+				gData[0] = 1;
+				gData[1] = contor-1;
+				gData[2] = LvlAccesible[1];
+				gData[3] = LvlAccesible[2];
+				gData[4] = LvlAccesible[3];
+				gData[5] = NewPlayer->getHealth();
+				gData[6] = NewPlayer->getAttack();
+				gData[7] = NewPlayer->getLevel();
+				gData[8] = NewPlayer->getExperience();
+				gData[9] = NewPlayer->getGold();
+			}
 			break;
 		case 1:
 			//Level Selection menu
@@ -425,18 +526,26 @@ void Game::handleEvents() {
 			else if (LvlAccesible[1] == 0 && contor == 1) {
 				contor++;
 				LvlAccesible[2] = 15;
-				NewPlayer = Levels[0]->getPlayerState();
-				delete Levels[0];
+				if (SaveLoaded == false) {
+					NewPlayer = Levels[0]->getPlayerState();
+					delete Levels[0];
+				}
 				Levels[1] = new Level(gRenderer);
+				delete firstMonster;
+				firstMonster = nullptr;
+				firstMonster = new Enemy(gRenderer, 2, Font);
 				Levels[1]->init(gButtonSpriteSheetTexture, NewPlayer, firstMonster,PlayerSprite[1], MonsterTexture,116, 56);
 				Levels[1]->setLvlLayout(Lvl2Layout);
 			}
 			else if (LvlAccesible[2] == 0 && contor == 2) {
 				contor++;
 				LvlAccesible[3] = 15;
-				NewPlayer = Levels[1]->getPlayerState();
-				delete Levels[1];
+				if (SaveLoaded == false) {
+					NewPlayer = Levels[1]->getPlayerState();
+					delete Levels[1];
+				}
 				Levels[2] = new Level(gRenderer);
+				firstMonster->setType(3);
 				Levels[2]->init(gButtonSpriteSheetTexture, NewPlayer, firstMonster,PlayerSprite[2], MonsterTexture,96, 46);
 				Levels[2]->setLvlLayout(Lvl3Layout);
 			}
@@ -465,6 +574,16 @@ void Game::handleEvents() {
 			break;
 		case 5:
 			//Shop menu
+			for (int i = 0; i < 4; ++i)
+			{
+				LevelSelectionButton[i]->setButtonAction(0);
+			}
+			for (int i = 0;i < 4;++i) {
+				PurchaseSelectionButton[i]->handleEvent(&event, 320, 155);
+			}
+			SettingsBackButton->setButtonId(1);
+			SettingsBackButton->handleEvent(&event, BUTTON_WIDTH, BUTTON_HEIGHT);
+			opt = SettingsBackButton->getButtonAction();
 			break;
 		case 6:
 			//Level 1 ended - show level ending screen
@@ -572,6 +691,23 @@ void Game::handleEvents() {
 }
 
 void Game::clean() {
+
+	SDL_RWops* file = SDL_RWFromFile("./Assets/stats.bin", "w+b");
+	if (file != NULL)
+	{
+		//Save data
+		for (int i = 0; i < TOTAL_DATA; ++i)
+		{
+			SDL_RWwrite(file, &gData[i], sizeof(Sint32), 1);
+		}
+		//Close file handler
+		SDL_RWclose(file);
+	}
+	else
+	{
+		printf("Error: Unable to save file! %s\n", SDL_GetError());
+	}
+
 	MainMenuTexture->free();
 	gButtonSpriteSheetTexture->free();
 	gButtonTextSpriteSheetTexture->free();
@@ -590,6 +726,11 @@ void Game::clean() {
 	}
 	if (NewPlayer != nullptr) {
 		delete NewPlayer;
+	}
+	for (int i = 0;i < 3;++i) {
+		if (LvlAccesible[i+1]!=0 && Levels[i] != nullptr) {
+			delete Levels[i];
+		}
 	}
 	TTF_CloseFont(Font);
 	Font = NULL;

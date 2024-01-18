@@ -11,9 +11,9 @@
 class Enemy : public Component {
 	int type;
 	/*
-		1 - weak - 10HP - 2ATK
-		2 - medium - 25HP - 4ATK
-		3 - difficult - 40HP - 8ATK
+		1 - weak - 10HP - 5ATK
+		2 - medium - 25HP - 8ATK
+		3 - difficult - 40HP - 12ATK
 	*/
 	int health, attack,maxHP;
 	TextureManager* EnemyTexture;
@@ -48,4 +48,6 @@ public:
 	void update(int dmg) { health -= dmg; }
 	void setMonsterHealth() { health = maxHP; }
 	int getMonsterHealth() { return health; }
+	int getMonsterAttack() { return attack; }
+	void setType(int t) { type = t; }
 };

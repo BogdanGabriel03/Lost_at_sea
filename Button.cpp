@@ -82,6 +82,9 @@ void Button::handleEvent(SDL_Event* e, int BUTTON_WIDTH, int BUTTON_HEIGHT)
 			case 3:
 				mCurrentSprite = BUTTON_SPRITE_UNTOUCHED;
 				break;
+			case 4:
+				mCurrentSprite = BUTTON_SPRITE_UNTOUCHED_BIG;
+				break;
 			}
 		}
 		//Mouse is inside button
@@ -152,6 +155,9 @@ void Button::handleEvent(SDL_Event* e, int BUTTON_WIDTH, int BUTTON_HEIGHT)
 						break;
 					case 3:
 						mCurrentSprite = BUTTON_SPRITE_ACTIVE;
+						break;
+					case 4:
+						mCurrentSprite = BUTTON_SPRITE_ACTIVE_BIG;
 						break;
 					}
 				break;

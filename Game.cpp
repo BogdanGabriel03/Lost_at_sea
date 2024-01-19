@@ -165,7 +165,6 @@ void Game::init(const char* title, int xpos, int ypos, int windowWidth, int wind
 		NewPlayer->setExperience(gData[8]);
 		NewPlayer->setGold(gData[9]);
 		gData[0] = 0;
-		std::cout << LvlAccesible[1] << " " << LvlAccesible[2] << " " << LvlAccesible[3] << "\n";
 	}
 	firstMonster = new Enemy(gRenderer, 1,Font);
 }
@@ -338,7 +337,6 @@ void Game::loadMedia(int windowWidth, int windowHeight) {
 		for (int i = 0; i < TOTAL_DATA; ++i)
 		{
 			SDL_RWread(file, &gData[i], sizeof(Sint32), 1);
-			std::cout << gData[i] << "  ";
 		}
 		std::cout << "\n";
 		if (gData[0] == 1) {
